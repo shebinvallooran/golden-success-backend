@@ -34,6 +34,8 @@ go.work
 .Trashes
 ehthumbs.db
 Thumbs.db
+golden_success.db
+*.db
 
 # Logs
 *.log

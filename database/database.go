@@ -6,7 +6,7 @@ import (
 
 	"golden-success-backend/models"
 
-	"gorm.io/driver/postgres"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -14,23 +14,25 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		log.Fatal("FATAL: DATABASE_URL environment variable is not set.")
+	dbPath := os.Getenv("DATABASE_PATH")
+	if dbPath == "" {
+		dbPath = "golden_success.db"
 	}
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("FATAL: Failed to connect to PostgreSQL: %v", err)
+		log.Fatalf("FATAL: Failed to connect to SQLite database: %v", err)
 	}
-	log.Println("PostgreSQL database connected successfully")
+	log.Printf("SQLite database connected successfully (file: %s)", dbPath)
 
 	log.Println("Running database migrations...")
 	err = DB.AutoMigrate(
 		&models.Category{},
 		&models.User{},
 		&models.Product{},
+		&models.Quote{},
+		&models.NotificationSetting{},
 	)
 	if err != nil {
 		log.Fatalf("FATAL: Failed to migrate database: %v", err)
@@ -39,6 +41,7 @@ func InitDB() {
 
 	createDefaultCategories()
 	createDefaultUser()
+	createDefaultSettings()
 }
 
 func createDefaultCategories() {
@@ -79,6 +82,29 @@ func createDefaultUser() {
 			log.Printf("WARN: Failed to create default user: %v", err)
 		} else {
 			log.Println("Default admin user created (username: admin, password: admin1223)")
+		}
+	}
+}
+
+func createDefaultSettings() {
+	var count int64
+	DB.Model(&models.NotificationSetting{}).Count(&count)
+	if count == 0 {
+		defaultSettings := models.NotificationSetting{
+			NotificationEmail:        "admin@goldensuccessksa.com",
+			EnableEmailNotifications: false,
+			SenderEmail:              "noreply@goldensuccessksa.com",
+			SMTPHost:                 "smtp.gmail.com",
+			SMTPPort:                 587,
+			SMTPUsername:             "",
+			SMTPPassword:             "",
+			SMTPSecure:               false,
+		}
+
+		if err := DB.Create(&defaultSettings).Error; err != nil {
+			log.Printf("WARN: Failed to create default settings: %v", err)
+		} else {
+			log.Println("Default notification settings created")
 		}
 	}
 }

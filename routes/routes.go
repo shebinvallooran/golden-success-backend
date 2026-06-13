@@ -52,10 +52,8 @@ func SetupRoutes(r *gin.Engine) {
 			categories.GET("/list", controllers.GetCategoriesList)           // GET /api/v1/categories/list (simple list without pagination)
 			categories.GET("/:id", controllers.GetCategory)                 // GET /api/v1/categories/:id
 		}
-
-
-
-
+		// Public quotes/enquiries route (no auth required)
+		v1.POST("/quotes", controllers.CreateQuote) // POST /api/v1/quotes
 
 		// Protected category routes (auth required)
 		protectedCategories := v1.Group("/categories")
@@ -77,6 +75,15 @@ func SetupRoutes(r *gin.Engine) {
 			// Upload routes
 			protected.POST("/upload", controllers.UploadImage)           // POST /api/v1/upload
 			protected.DELETE("/uploads/:filename", controllers.DeleteImage) // DELETE /api/v1/uploads/:filename
+
+			// Quotes/Enquiries routes
+			protected.GET("/quotes", controllers.GetQuotes)                // GET /api/v1/quotes
+			protected.PUT("/quotes/:id/status", controllers.UpdateQuoteStatus) // PUT /api/v1/quotes/:id/status
+			protected.DELETE("/quotes/:id", controllers.DeleteQuote)       // DELETE /api/v1/quotes/:id
+
+			// Notification settings routes
+			protected.GET("/settings/notification", controllers.GetNotificationSettings) // GET /api/v1/settings/notification
+			protected.PUT("/settings/notification", controllers.UpdateNotificationSettings) // PUT /api/v1/settings/notification
 		}
 
 		// Public upload route (no auth required for serving images)
