@@ -53,11 +53,14 @@ func main() {
 	// Configure CORS
 	log.Println("Configuring CORS...")
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"}
+	corsConfig.AllowOriginFunc = func(origin string) bool {
+		return true
+	}
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
 	corsConfig.AllowCredentials = true
 	r.Use(cors.New(corsConfig))
+
 
 	// Setup routes
 	log.Println("Setting up routes...")
